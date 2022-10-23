@@ -205,15 +205,25 @@ switch:
             id(minimum_run_time_passed) = false;
             id(switch_off_requested) = false;
             id(minimum_run_time_script).execute();
-  - platform: output
+  - platform: modbus_controller
+    modbus_controller_id: lg
+    name: "Heat Pump Power"
+    id: heat_pump_on_off
+    register_type: coil
+    address: 0
+  - platform: modbus_controller
+    modbus_controller_id: lg
+    name: "SWW On/Off"
+    id: sww_on_off
+    register_type: coil
+    address: 1  
+  - platform: modbus_controller
+    modbus_controller_id: lg
     name: "Silent Mode"
     id: silent_mode_switch
-    output: 'modbus_set_silent_mode'
-  - platform: output
-    id: sww_on_off
-    name: "SWW On/Off"
-    output: 'modbus_set_DHW_mode'
-
+    register_type: coil
+    address: 2
+ 
 # External thermostat anti pendel script. Some thermostats (Eneco Toon is really bad) sometimes temporarily switches the output off, while heat is still needed
 # This script delays switching the heating of for x minutes. If heating switches back on within this timeframe the script stops
 # An other 'nice' feature of Toon is that it sometimes switches on the heating for only 1 or 2 minutes and then off again
@@ -305,17 +315,6 @@ output:
     address: 2
     value_type: U_WORD
     multiply: 1000
-  - platform: modbus_controller
-    modbus_controller_id: lg
-    id: modbus_set_silent_mode
-    register_type: coil
-    address: 2
-  - platform: modbus_controller
-    modbus_controller_id: lg
-    id: modbus_set_DHW_mode
-    register_type: coil
-    address: 1
-    
  
 binary_sensor:
   - platform: gpio # Thermostat input signal is connected to this input pin
@@ -373,10 +372,6 @@ binary_sensor:
     register_type: discrete_input
     skip_updates: 1
     address: 7
-    on_state:
-      then:
-        - lambda: |-
-            if(id(silent_mode).state != id(silent_mode_switch).state) id(silent_mode_switch).publish_state(id(silent_mode).state);
     
 sensor:
   - platform: dallas
